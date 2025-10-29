@@ -1,0 +1,90 @@
+<?xml version="1.1" encoding="UTF-8" standalone="no"?>
+<databaseChangeLog
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns:ext="http://www.liquibase.org/xml/ns/dbchangelog-ext"
+    xmlns:pro="http://www.liquibase.org/xml/ns/pro"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+        http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd
+        http://www.liquibase.org/xml/ns/dbchangelog-ext http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-ext.xsd
+        http://www.liquibase.org/xml/ns/pro http://www.liquibase.org/xml/ns/pro/liquibase-pro-latest.xsd" >
+
+  <property name="now" value="now()" dbms="mysql,hsqldb,postgresql,h2"/>
+  <property name="now" value="sysdate()" dbms="mariadb"/>
+  <property name="now" value="sysdate" dbms="oracle"/>
+  <property name="now" value="CURRENT_TIMESTAMP" dbms="mssql"/>
+	<changeSet author="jorge.vega" id="1">
+	
+		<createTable tableName="EMPRESA">
+			<column name="EMPRESA_ID" type="BIGINT" autoIncrement="true">
+				<constraints primaryKey="true" nullable="false" />
+			</column>
+			<column name="CLAVE_EMPRESA" type="VARCHAR(50)" />
+			<column name="NOMBRE" type="VARCHAR(200)" />
+			<column name="FECHA_CREACION" type="DATETIME"/>
+		</createTable>
+		
+		<createTable tableName="CONTABLES">
+			<column name="CONTABLES_ID" type="BIGINT" autoIncrement="true">
+				<constraints primaryKey="true" nullable="false" />
+			</column>
+			<column name="EMPRESA_ID" type="BIGINT" >
+			   <constraints nullable="false" foreignKeyName="FK_CONTABLE_EMPRESAID" references="EMPRESA(EMPRESA_ID)" />
+			</column>
+			<column name="VENTAS_PROMEDIO" type="DECIMAL(12,2)" />
+			<column name="ACTIVOS" type="DECIMAL(12,2)" />
+			<column name="PASIVOS" type="DECIMAL(12,2)" />
+		</createTable>
+		
+		<createTable tableName="VERIFICACION_LEGAL">
+			<column name="VERIFICACION_LEGAL_ID" type="BIGINT" autoIncrement="true">
+				<constraints primaryKey="true" nullable="false" />
+			</column>
+			<column name="NOMBRE_PROCESO" type="VARCHAR(100)"/>
+			<column name="FECHA_PROCESO" type="DATETIME"/>
+			<column name="EMPRESA_ID" type="BIGINT" >
+			   <constraints nullable="false" foreignKeyName="FK_LEGAL_EMPRESAID" references="EMPRESA(EMPRESA_ID)" />
+			</column>
+		</createTable>
+		
+		<createTable tableName="CREDITO">
+			<column name="CREDITO_ID" type="BIGINT" autoIncrement="true">
+				<constraints primaryKey="true" nullable="false" />
+			</column>
+			<column name="NO_CREDITO" type="VARCHAR(10)" />
+			<column name="EMPRESA_ID" type="BIGINT" >
+			   <constraints nullable="false" foreignKeyName="FK_CREDITO_EMPRESAID" references="EMPRESA(EMPRESA_ID)" />
+			</column>
+			<column name="MONTO_SOLICITADO" type="DECIMAL(12,2)" >
+				<constraints  nullable="false" />
+			</column>
+			<column name="MONTO_PENDIENTE" type="DECIMAL(12,2)" >
+				<constraints  nullable="false" />
+			</column>
+			<column name="DIAS_ATRASADO" type="DECIMAL(12,2)" >
+				<constraints  nullable="false" />
+			</column>
+			<column name="REFINANCIAMIENTO" type="BOOLEAN" >
+				<constraints  nullable="false" />
+			</column>
+		</createTable>
+		
+		<createTable tableName="PAGOS">
+			<column name="PAGOS_ID" type="BIGINT" autoIncrement="true">
+				<constraints primaryKey="true" nullable="false" />
+			</column>
+			<column name="FECHA_PAGOS_REQUERIDOS" type="DATETIME" />
+			<column name="FECHA_PAGO_REAL" type="DATETIME" />
+			<column name="MONTO_SOLICITADO" type="DECIMAL(12,2)" />
+			<column name="MONTO_PAGADO" type="DECIMAL(12,2))" />
+			<column name="CREDITO_ID" type="BIGINT" >
+			   <constraints nullable="false" foreignKeyName="FK_PAGOS_CREDITOID" references="CREDITO(CREDITO_ID)" />
+			</column>
+			<column name="EMPRESA_ID" type="BIGINT">
+				<constraints nullable="false" foreignKeyName="FK_PAGOS_EMPRESAID" references="EMPRESA(EMPRESA_ID)" />
+			</column>
+		</createTable>
+		
+	</changeSet>
+
+</databaseChangeLog>

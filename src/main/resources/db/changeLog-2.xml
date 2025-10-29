@@ -1,0 +1,277 @@
+<?xml version="1.1" encoding="UTF-8" standalone="no"?>
+<databaseChangeLog
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns:ext="http://www.liquibase.org/xml/ns/dbchangelog-ext"
+    xmlns:pro="http://www.liquibase.org/xml/ns/pro"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+        http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd
+        http://www.liquibase.org/xml/ns/dbchangelog-ext http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-ext.xsd
+        http://www.liquibase.org/xml/ns/pro http://www.liquibase.org/xml/ns/pro/liquibase-pro-latest.xsd" >
+
+ <property name="now" value="now()" dbms="mysql,hsqldb,postgresql,h2"/>
+  <property name="now" value="sysdate()" dbms="mariadb"/>
+  <property name="now" value="sysdate" dbms="oracle"/>
+  <property name="now" value="CURRENT_TIMESTAMP" dbms="mssql"/>
+	<!-- ============================================================ -->
+    <!-- ESCENARIO 1: RIESGO ALTO - Atraso > 90 días -->
+    <!-- ============================================================ -->
+    <changeSet author="jorge.vega" id="2">
+        <insert tableName="EMPRESA">
+            <column name="CLAVE_EMPRESA" value="EMP001"/>
+            <column name="NOMBRE" value="Comercializadora del Norte SA"/>
+            <column name="FECHA_CREACION" valueDate="2020-01-15"/>
+        </insert>
+        
+        <sql>
+            INSERT INTO CONTABLES (EMPRESA_ID, VENTAS_PROMEDIO, ACTIVOS, PASIVOS)
+            SELECT EMPRESA_ID, 500000.00, 2000000.00, 800000.00
+            FROM EMPRESA WHERE CLAVE_EMPRESA='EMP001';
+            
+            INSERT INTO VERIFICACION_LEGAL (EMPRESA_ID, NOMBRE_PROCESO, FECHA_PROCESO)
+            SELECT EMPRESA_ID, 'SIN_PROCESOS', '2025-01-15'
+            FROM EMPRESA WHERE CLAVE_EMPRESA='EMP001';
+            
+            INSERT INTO CREDITO (EMPRESA_ID, NO_CREDITO, MONTO_SOLICITADO, MONTO_PENDIENTE, DIAS_ATRASADO, REFINANCIAMIENTO)
+            SELECT EMPRESA_ID, 'CRE001', 1000000, 450000, 120, false
+            FROM EMPRESA WHERE CLAVE_EMPRESA='EMP001';
+        </sql>
+    </changeSet>
+
+    <!-- ============================================================ -->
+    <!-- ESCENARIO 2: RIESGO ALTO - Monto > 8x ventas promedio -->
+    <!-- Solicitud: empresaId='EMP002', montoSolicitado=2500000 -->
+    <!-- productoFinanciero=CREDITO_REVOLVENTE -->
+    <!-- Resultado esperado: RIESGO ALTO (monto > 8x ventas) -->
+    <!-- ============================================================ -->
+    <changeSet author="jorge.vega" id="2-escenario-2">
+        <insert tableName="EMPRESA">
+            <column name="CLAVE_EMPRESA" value="EMP002"/>
+            <column name="NOMBRE" value="Distribuidora Central SA"/>
+            <column name="FECHA_CREACION" valueDate="2021-05-20"/>
+        </insert>
+        
+        <sql>
+            INSERT INTO CONTABLES (EMPRESA_ID, VENTAS_PROMEDIO, ACTIVOS, PASIVOS)
+            SELECT EMPRESA_ID, 300000.00, 1500000.00, 600000.00
+            FROM EMPRESA WHERE CLAVE_EMPRESA='EMP002';
+            
+            INSERT INTO VERIFICACION_LEGAL (EMPRESA_ID, NOMBRE_PROCESO, FECHA_PROCESO)
+            SELECT EMPRESA_ID, 'SIN_PROCESOS', '2025-01-15'
+            FROM EMPRESA WHERE CLAVE_EMPRESA='EMP002';
+            
+            INSERT INTO CREDITO (EMPRESA_ID, NO_CREDITO, MONTO_SOLICITADO, MONTO_PENDIENTE, DIAS_ATRASADO, REFINANCIAMIENTO)
+            SELECT EMPRESA_ID, 'CRE002', 500000, 0, 0, false
+            FROM EMPRESA WHERE CLAVE_EMPRESA='EMP002';
+        </sql>
+    </changeSet>
+
+    <!-- ============================================================ -->
+    <!-- ESCENARIO 3: RIESGO MEDIO mínimo - Empresa nueva (< 18 meses) -->
+    <!-- Solicitud: empresaId='EMP003', montoSolicitado=400000 -->
+    <!-- productoFinanciero=LINEA_OPERATIVA, fechaSolicitud=2025-10-28 -->
+    <!-- Resultado esperado: RIESGO MEDIO como mínimo (empresa < 18 meses) -->
+    <!-- ============================================================ -->
+    <changeSet author="jorge.vega" id="2-escenario-3">
+        <insert tableName="EMPRESA">
+            <column name="CLAVE_EMPRESA" value="EMP003"/>
+            <column name="NOMBRE" value="StartUp Innovadora SA"/>
+            <column name="FECHA_CREACION" valueDate="2024-06-01"/>
+        </insert>
+        
+        <sql>
+            INSERT INTO CONTABLES (EMPRESA_ID, VENTAS_PROMEDIO, ACTIVOS, PASIVOS)
+            SELECT EMPRESA_ID, 200000.00, 800000.00, 300000.00
+            FROM EMPRESA WHERE CLAVE_EMPRESA='EMP003';
+            
+            INSERT INTO VERIFICACION_LEGAL (EMPRESA_ID, NOMBRE_PROCESO, FECHA_PROCESO)
+            SELECT EMPRESA_ID, 'SIN_PROCESOS', '2025-01-15'
+            FROM EMPRESA WHERE CLAVE_EMPRESA='EMP003';
+        </sql>
+    </changeSet>
+
+    <!-- ============================================================ -->
+    <!-- ESCENARIO 4: RIESGO ALTO - Demanda legal abierta -->
+    <!-- Solicitud: empresaId='EMP004', montoSolicitado=1000000 -->
+    <!-- productoFinanciero=CREDITO_REVOLVENTE -->
+    <!-- Resultado esperado: RIESGO ALTO (juicio mercantil activo) -->
+    <!-- ============================================================ -->
+    <changeSet author="jorge.vega" id="2-escenario-4">
+        <insert tableName="EMPRESA">
+            <column name="CLAVE_EMPRESA" value="EMP004"/>
+            <column name="NOMBRE" value="Constructora Urbana SA"/>
+            <column name="FECHA_CREACION" valueDate="2019-03-10"/>
+        </insert>
+        
+        <sql>
+            INSERT INTO CONTABLES (EMPRESA_ID, VENTAS_PROMEDIO, ACTIVOS, PASIVOS)
+            SELECT EMPRESA_ID, 800000.00, 5000000.00, 2000000.00
+            FROM EMPRESA WHERE CLAVE_EMPRESA='EMP004';
+            
+            INSERT INTO VERIFICACION_LEGAL (EMPRESA_ID, NOMBRE_PROCESO, FECHA_PROCESO)
+            SELECT EMPRESA_ID, 'JUICIO_MERCANTIL', '2025-02-10'
+            FROM EMPRESA WHERE CLAVE_EMPRESA='EMP004';
+            
+            INSERT INTO CREDITO (EMPRESA_ID, NO_CREDITO, MONTO_SOLICITADO, MONTO_PENDIENTE, DIAS_ATRASADO, REFINANCIAMIENTO)
+            SELECT EMPRESA_ID, 'CRE003', 2000000, 0, 0, false
+            FROM EMPRESA WHERE CLAVE_EMPRESA='EMP004';
+        </sql>
+    </changeSet>
+
+    <!-- ============================================================ -->
+    <!-- ESCENARIO 5: Baja un nivel - Historial excelente (12 pagos a tiempo) -->
+    <!-- Solicitud: empresaId='EMP005', montoSolicitado=2000000 -->
+    <!-- productoFinanciero=LINEA_OPERATIVA -->
+    <!-- Resultado esperado: Se reduce un nivel de riesgo por historial excelente -->
+    <!-- ============================================================ -->
+    <changeSet author="jorge.vega" id="2-escenario-5">
+        <insert tableName="EMPRESA">
+            <column name="CLAVE_EMPRESA" value="EMP005"/>
+            <column name="NOMBRE" value="Industrias del Pacífico SA"/>
+            <column name="FECHA_CREACION" valueDate="2018-08-15"/>
+        </insert>
+        
+        <sql>
+            INSERT INTO CONTABLES (EMPRESA_ID, VENTAS_PROMEDIO, ACTIVOS, PASIVOS)
+            SELECT EMPRESA_ID, 1000000.00, 8000000.00, 3000000.00
+            FROM EMPRESA WHERE CLAVE_EMPRESA='EMP005';
+            
+            INSERT INTO VERIFICACION_LEGAL (EMPRESA_ID, NOMBRE_PROCESO, FECHA_PROCESO)
+            SELECT EMPRESA_ID, 'SIN_PROCESOS', '2025-01-15'
+            FROM EMPRESA WHERE CLAVE_EMPRESA='EMP005';
+            
+            INSERT INTO CREDITO (EMPRESA_ID, NO_CREDITO, MONTO_SOLICITADO, MONTO_PENDIENTE, DIAS_ATRASADO, REFINANCIAMIENTO)
+            SELECT EMPRESA_ID, 'CRE004', 3000000, 0, 0, false
+            FROM EMPRESA WHERE CLAVE_EMPRESA='EMP005';
+        </sql>
+        
+        <!-- 12 pagos puntuales en los últimos 12 meses -->
+        <sql>
+            INSERT INTO PAGOS (CREDITO_ID, EMPRESA_ID, FECHA_PAGOS_REQUERIDOS, FECHA_PAGO_REAL, MONTO_SOLICITADO, MONTO_PAGADO)
+            SELECT 
+                (SELECT CREDITO_ID FROM CREDITO WHERE NO_CREDITO='CRE004'),
+                (SELECT EMPRESA_ID FROM EMPRESA WHERE CLAVE_EMPRESA='EMP005'),
+                '2024-11-01', '2024-11-01', 250000, 250000;
+            
+            INSERT INTO PAGOS (CREDITO_ID, EMPRESA_ID, FECHA_PAGOS_REQUERIDOS, FECHA_PAGO_REAL, MONTO_SOLICITADO, MONTO_PAGADO)
+            SELECT 
+                (SELECT CREDITO_ID FROM CREDITO WHERE NO_CREDITO='CRE004'),
+                (SELECT EMPRESA_ID FROM EMPRESA WHERE CLAVE_EMPRESA='EMP005'),
+                '2024-12-01', '2024-12-01', 250000, 250000;
+            
+            INSERT INTO PAGOS (CREDITO_ID, EMPRESA_ID, FECHA_PAGOS_REQUERIDOS, FECHA_PAGO_REAL, MONTO_SOLICITADO, MONTO_PAGADO)
+            SELECT 
+                (SELECT CREDITO_ID FROM CREDITO WHERE NO_CREDITO='CRE004'),
+                (SELECT EMPRESA_ID FROM EMPRESA WHERE CLAVE_EMPRESA='EMP005'),
+                '2025-01-01', '2025-01-01', 250000, 250000;
+            
+            INSERT INTO PAGOS (CREDITO_ID, EMPRESA_ID, FECHA_PAGOS_REQUERIDOS, FECHA_PAGO_REAL, MONTO_SOLICITADO, MONTO_PAGADO)
+            SELECT 
+                (SELECT CREDITO_ID FROM CREDITO WHERE NO_CREDITO='CRE004'),
+                (SELECT EMPRESA_ID FROM EMPRESA WHERE CLAVE_EMPRESA='EMP005'),
+                '2025-02-01', '2025-02-01', 250000, 250000;
+            
+            INSERT INTO PAGOS (CREDITO_ID, EMPRESA_ID, FECHA_PAGOS_REQUERIDOS, FECHA_PAGO_REAL, MONTO_SOLICITADO, MONTO_PAGADO)
+            SELECT 
+                (SELECT CREDITO_ID FROM CREDITO WHERE NO_CREDITO='CRE004'),
+                (SELECT EMPRESA_ID FROM EMPRESA WHERE CLAVE_EMPRESA='EMP005'),
+                '2025-03-01', '2025-03-01', 250000, 250000;
+            
+            INSERT INTO PAGOS (CREDITO_ID, EMPRESA_ID, FECHA_PAGOS_REQUERIDOS, FECHA_PAGO_REAL, MONTO_SOLICITADO, MONTO_PAGADO)
+            SELECT 
+                (SELECT CREDITO_ID FROM CREDITO WHERE NO_CREDITO='CRE004'),
+                (SELECT EMPRESA_ID FROM EMPRESA WHERE CLAVE_EMPRESA='EMP005'),
+                '2025-04-01', '2025-04-01', 250000, 250000;
+            
+            INSERT INTO PAGOS (CREDITO_ID, EMPRESA_ID, FECHA_PAGOS_REQUERIDOS, FECHA_PAGO_REAL, MONTO_SOLICITADO, MONTO_PAGADO)
+            SELECT 
+                (SELECT CREDITO_ID FROM CREDITO WHERE NO_CREDITO='CRE004'),
+                (SELECT EMPRESA_ID FROM EMPRESA WHERE CLAVE_EMPRESA='EMP005'),
+                '2025-05-01', '2025-05-01', 250000, 250000;
+            
+            INSERT INTO PAGOS (CREDITO_ID, EMPRESA_ID, FECHA_PAGOS_REQUERIDOS, FECHA_PAGO_REAL, MONTO_SOLICITADO, MONTO_PAGADO)
+            SELECT 
+                (SELECT CREDITO_ID FROM CREDITO WHERE NO_CREDITO='CRE004'),
+                (SELECT EMPRESA_ID FROM EMPRESA WHERE CLAVE_EMPRESA='EMP005'),
+                '2025-06-01', '2025-06-01', 250000, 250000;
+            
+            INSERT INTO PAGOS (CREDITO_ID, EMPRESA_ID, FECHA_PAGOS_REQUERIDOS, FECHA_PAGO_REAL, MONTO_SOLICITADO, MONTO_PAGADO)
+            SELECT 
+                (SELECT CREDITO_ID FROM CREDITO WHERE NO_CREDITO='CRE004'),
+                (SELECT EMPRESA_ID FROM EMPRESA WHERE CLAVE_EMPRESA='EMP005'),
+                '2025-07-01', '2025-07-01', 250000, 250000;
+            
+            INSERT INTO PAGOS (CREDITO_ID, EMPRESA_ID, FECHA_PAGOS_REQUERIDOS, FECHA_PAGO_REAL, MONTO_SOLICITADO, MONTO_PAGADO)
+            SELECT 
+                (SELECT CREDITO_ID FROM CREDITO WHERE NO_CREDITO='CRE004'),
+                (SELECT EMPRESA_ID FROM EMPRESA WHERE CLAVE_EMPRESA='EMP005'),
+                '2025-08-01', '2025-08-01', 250000, 250000;
+            
+            INSERT INTO PAGOS (CREDITO_ID, EMPRESA_ID, FECHA_PAGOS_REQUERIDOS, FECHA_PAGO_REAL, MONTO_SOLICITADO, MONTO_PAGADO)
+            SELECT 
+                (SELECT CREDITO_ID FROM CREDITO WHERE NO_CREDITO='CRE004'),
+                (SELECT EMPRESA_ID FROM EMPRESA WHERE CLAVE_EMPRESA='EMP005'),
+                '2025-09-01', '2025-09-01', 250000, 250000;
+            
+            INSERT INTO PAGOS (CREDITO_ID, EMPRESA_ID, FECHA_PAGOS_REQUERIDOS, FECHA_PAGO_REAL, MONTO_SOLICITADO, MONTO_PAGADO)
+            SELECT 
+                (SELECT CREDITO_ID FROM CREDITO WHERE NO_CREDITO='CRE004'),
+                (SELECT EMPRESA_ID FROM EMPRESA WHERE CLAVE_EMPRESA='EMP005'),
+                '2025-10-01', '2025-10-01', 250000, 250000;
+        </sql>
+    </changeSet>
+
+    <!-- ============================================================ -->
+    <!-- ESCENARIO 6: Sube un nivel - Producto ARRENDAMIENTO_FINANCIERO -->
+    <!-- Solicitud: empresaId='EMP006', montoSolicitado=800000 -->
+    <!-- productoFinanciero=ARRENDAMIENTO_FINANCIERO -->
+    <!-- Resultado esperado: Se incrementa un nivel de riesgo por producto estricto -->
+    <!-- ============================================================ -->
+    <changeSet author="jorge.vega" id="2-escenario-6">
+        <insert tableName="EMPRESA">
+            <column name="CLAVE_EMPRESA" value="EMP006"/>
+            <column name="NOMBRE" value="Transportes Logística SA"/>
+            <column name="FECHA_CREACION" valueDate="2020-11-20"/>
+        </insert>
+        
+        <sql>
+            INSERT INTO CONTABLES (EMPRESA_ID, VENTAS_PROMEDIO, ACTIVOS, PASIVOS)
+            SELECT EMPRESA_ID, 600000.00, 3500000.00, 1200000.00
+            FROM EMPRESA WHERE CLAVE_EMPRESA='EMP006';
+            
+            INSERT INTO VERIFICACION_LEGAL (EMPRESA_ID, NOMBRE_PROCESO, FECHA_PROCESO)
+            SELECT EMPRESA_ID, 'SIN_PROCESOS', '2025-01-15'
+            FROM EMPRESA WHERE CLAVE_EMPRESA='EMP006';
+            
+            INSERT INTO CREDITO (EMPRESA_ID, NO_CREDITO, MONTO_SOLICITADO, MONTO_PENDIENTE, DIAS_ATRASADO, REFINANCIAMIENTO)
+            SELECT EMPRESA_ID, 'CRE005', 1500000, 0, 0, false
+            FROM EMPRESA WHERE CLAVE_EMPRESA='EMP006';
+        </sql>
+    </changeSet>
+
+    <!-- ============================================================ -->
+    <!-- ESCENARIO 7: COMBINADO - Empresa nueva + Arrendamiento (Múltiples reglas) -->
+    <!-- Solicitud: empresaId='EMP007', montoSolicitado=500000 -->
+    <!-- productoFinanciero=ARRENDAMIENTO_FINANCIERO -->
+    <!-- Resultado esperado: RIESGO ALTO (empresa nueva = mínimo MEDIO + arrendamiento = +1 nivel) -->
+    <!-- ============================================================ -->
+    <changeSet author="jorge.vega" id="2-escenario-7">
+        <insert tableName="EMPRESA">
+            <column name="CLAVE_EMPRESA" value="EMP007"/>
+            <column name="NOMBRE" value="Tech Solutions MX SA"/>
+            <column name="FECHA_CREACION" valueDate="2024-08-01"/>
+        </insert>
+        
+        <sql>
+            INSERT INTO CONTABLES (EMPRESA_ID, VENTAS_PROMEDIO, ACTIVOS, PASIVOS)
+            SELECT EMPRESA_ID, 250000.00, 1000000.00, 400000.00
+            FROM EMPRESA WHERE CLAVE_EMPRESA='EMP007';
+            
+            INSERT INTO VERIFICACION_LEGAL (EMPRESA_ID, NOMBRE_PROCESO, FECHA_PROCESO)
+            SELECT EMPRESA_ID, 'SIN_PROCESOS', '2025-01-15'
+            FROM EMPRESA WHERE CLAVE_EMPRESA='EMP007';
+        </sql>
+    </changeSet>
+
+
+</databaseChangeLog>
