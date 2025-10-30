@@ -41,7 +41,7 @@
     <!-- ============================================================ -->
     <!-- ESCENARIO 2: RIESGO ALTO - Monto > 8x ventas promedio -->
     <!-- Solicitud: empresaId='EMP002', montoSolicitado=2500000 -->
-    <!-- productoFinanciero=CREDITO_REVOLVENTE -->
+    <!-- productoFinanciero=CREDITO_REVOLVENTE,  fechaSolicitud=2025-10-28 -->
     <!-- Resultado esperado: RIESGO ALTO (monto > 8x ventas) -->
     <!-- ============================================================ -->
     <changeSet author="jorge.vega" id="2-escenario-2">
