@@ -40,6 +40,8 @@ Instalación Clona el repositorio:
     
     Swagger UI: http://localhost:8080/swagger-ui.html
     
+    Accede a la consola H2 (opcional):
+    
     H2 Console: http://localhost:8080/h2-console
     
     JDBC URL: jdbc:h2:file:~/riskengine-db
@@ -59,7 +61,27 @@ Todos los repositorios extienden JpaRepository proporcionando:
 -Queries personalizadas con @Query
 -Métodos de búsqueda por convención de nombres
 -Soporte para paginación y ordenamiento
-     
+
+
+Supuestos
+Se asume que el entorno de ejecución tiene Java 21 instalado.
+
+CLAVE_EMPRESA: Se usa como identificador único en lugar de EMPRESA_ID para las consultas
+
+La base de datos utilizada es H2 en memoria.
+
+Liquibase se encarga de la creación y versionado del esquema de base de datos.
+
+El proyecto está diseñado para ejecutarse localmente en un entorno de desarrollo.
+
+Limitaciones
+No se incluye autenticación ni autorización todo el enfoque está en la lógica de negocio.
+
+La persistencia de datos es temporal debido al uso de H2 en memoria.
+
+No se contempla despliegue en producción ni integración continua.
+
+El manejo de errores está limitado a validaciones básicas.
 
 
 Ejemplos de Uso con cURL:
@@ -79,6 +101,7 @@ curl -X 'GET' \
 curl -X 'GET' \
   'http://localhost:8080/riskengine?claveEmpresa=EMP003?montoSolicitado=400000&producto=LINEA_OPERATIVA&fechaSolicitud=2025-10-28' \
   -H 'accept: */*'
+
 
 
 
